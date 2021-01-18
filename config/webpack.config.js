@@ -1,11 +1,10 @@
 const fs = require("fs");
-const isWsl = require("is-wsl");
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CaseSensitivePathsPlugin = require("case-sensitive-paths-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
-const ManifestPlugin = require("webpack-manifest-plugin");
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
 const WatchMissingNodeModulesPlugin = require("react-dev-utils/WatchMissingNodeModulesPlugin");
 const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
@@ -100,10 +99,10 @@ module.exports = webpackEnv => {
   return {
     mode: webpackEnv,
     bail: isProduction,
-    devtool: isProduction 
-      ? shouldUseSourceMap 
-        ? "source-map" 
-        : false 
+    devtool: isProduction
+      ? shouldUseSourceMap
+        ? "source-map"
+        : false
       : isDevelopment && "cheap-module-source-map",
     entry: paths.appIndexJs,
     output: {
@@ -144,9 +143,7 @@ module.exports = webpackEnv => {
               ascii_only: true
             }
           },
-          // Disabled on WSL (Windows Subsystem for Linux) due to an issue with Terser
-          // https://github.com/webpack-contrib/terser-webpack-plugin/issues/21
-          parallel: !isWsl,
+          parallel: true,
           cache: true,
           sourceMap: shouldUseSourceMap
         }),
@@ -447,7 +444,7 @@ module.exports = webpackEnv => {
       // Generate a manifest file which contains a mapping of all asset filenames
       // to their corresponding output file so that tools can pick it up without
       // having to parse `index.html`.
-      new ManifestPlugin({
+      new WebpackManifestPlugin({
         fileName: "asset-manifest.json",
         publicPath: publicPath,
         generate: (seed, files) => {
@@ -470,9 +467,8 @@ module.exports = webpackEnv => {
         new WorkboxWebpackPlugin.GenerateSW({
           clientsClaim: true,
           exclude: [/\.map$/, /asset-manifest\.json$/],
-          importWorkboxFrom: "cdn",
           navigateFallback: publicUrl + "/index.html",
-          navigateFallbackBlacklist: [
+          navigateFallbackDenylist: [
             // Exclude URLs starting with /_, as they're likely an API call
             new RegExp("^/_"),
             // Exclude URLs containing a dot, as they're likely a resource in
